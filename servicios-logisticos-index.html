@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bauer Lemans — Servicios Logísticos</title>
+<link rel="icon" type="image/png" href="logo-bauer.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Work+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --white:#FFFFFF; --paper:#F7F6F3; --ink:#14110F;
+    --red:#D91E2B; --red-dim:#F4D9DB; --line:#E4E1DB; --gray:#8A8680;
+    --teal:#1E6E7A; --teal-dim:#DCEEF0; --green:#3b7d3b;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{ background:var(--paper); color:var(--ink); font-family:'Work Sans', sans-serif; -webkit-font-smoothing:antialiased; }
+  .wrap{ max-width:1200px; margin:0 auto; padding:0 32px; }
+
+  /* ---------- LOGIN GATE ---------- */
+  #loginGate{ position:fixed; inset:0; background:var(--ink); display:flex; align-items:center; justify-content:center; z-index:9999; padding:24px; }
+  #loginGate.hidden{ display:none; }
+  .login-box{ background:var(--white); width:100%; max-width:360px; padding:40px 36px; border-radius:2px; text-align:center; }
+  .login-box img{ width:120px; height:auto; margin:0 auto 20px; display:block; }
+  .login-box .kicker{ font-family:'Oswald', sans-serif; font-weight:500; font-size:12px; letter-spacing:0.28em; text-transform:uppercase; color:var(--gray); margin-bottom:24px; }
+  .login-box label{ display:block; text-align:left; font-family:'Oswald', sans-serif; font-size:11px; font-weight:500; letter-spacing:0.14em; text-transform:uppercase; color:var(--gray); margin:14px 0 6px; }
+  .login-box input, .login-box select{ width:100%; padding:11px 12px; border:1px solid var(--line); border-radius:2px; font-family:'Work Sans', sans-serif; font-size:14px; background:var(--paper); color:var(--ink); }
+  .login-box input:focus, .login-box select:focus{ outline:none; border-color:var(--teal); background:var(--white); }
+  .pw-field{ position:relative; }
+  .pw-field input{ padding-right:38px !important; }
+  .pw-toggle{ position:absolute !important; right:6px !important; top:50% !important; transform:translateY(-50%) !important; width:auto !important; margin:0 !important; padding:2px 4px !important; background:none !important; border:none !important; cursor:pointer; font-size:15px; line-height:1; color:var(--gray); }
+  .login-box button{ width:100%; margin-top:22px; padding:12px; background:var(--ink); color:var(--white); border:none; border-radius:2px; font-family:'Oswald', sans-serif; font-size:13px; font-weight:500; letter-spacing:0.18em; text-transform:uppercase; cursor:pointer; transition:background 0.2s ease; }
+  .login-box button:hover{ background:var(--teal); }
+  .login-box .error{ color:var(--red); font-size:13px; margin-top:14px; display:none; }
+  .login-box .error.show{ display:block; }
+
+  /* ---------- TOP BAR ---------- */
+  header.appbar{ background:var(--ink); color:var(--white); padding:18px 0; }
+  header.appbar .wrap{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+  .brand{ display:flex; align-items:center; gap:12px; }
+  .brand img{ width:34px; height:34px; }
+  .brand .titles h1{ font-family:'Oswald', sans-serif; font-size:16px; font-weight:600; letter-spacing:0.02em; }
+  .brand .titles p{ font-size:11px; color:#B9B5AE; letter-spacing:0.08em; text-transform:uppercase; margin-top:2px; }
+  .top-controls{ display:flex; align-items:center; gap:10px; }
+  .welcome-user{ font-family:'Oswald', sans-serif; font-size:12px; letter-spacing:0.08em; color:#B9B5AE; text-transform:uppercase; margin-right:2px; }
+  .pill-btn{ font-family:'Oswald', sans-serif; font-size:11px; font-weight:500; letter-spacing:0.14em; text-transform:uppercase; background:transparent; border:1px solid #3a3733; color:var(--white); padding:8px 16px; border-radius:20px; cursor:pointer; transition:all 0.2s ease; text-decoration:none; display:inline-block; }
+  .pill-btn:hover{ border-color:var(--teal); color:#7ec8d4; }
+
+  /* ---------- NAV TABS ---------- */
+  nav.tabs{ background:var(--white); border-bottom:1px solid var(--line); }
+  nav.tabs .wrap{ display:flex; gap:4px; overflow-x:auto; }
+  nav.tabs button{ display:flex; align-items:center; gap:8px; background:none; border:none; cursor:pointer; padding:16px 16px; white-space:nowrap; font-family:'Oswald', sans-serif; font-size:12px; font-weight:500; letter-spacing:0.05em; color:var(--gray); border-bottom:2px solid transparent; }
+  nav.tabs button.active{ color:var(--ink); border-bottom-color:var(--teal); }
+
+  main{ padding:32px 0 64px; }
+  .panel{ background:var(--white); border:1px solid var(--line); border-radius:2px; padding:24px; }
+  .panel + .panel{ margin-top:20px; }
+  .panel h2{ font-family:'Oswald', sans-serif; font-size:14px; font-weight:600; letter-spacing:0.04em; margin-bottom:18px; }
+  .panel .sub{ font-size:12px; color:var(--gray); margin-top:-12px; margin-bottom:18px; }
+
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  .grid-5{ display:grid; grid-template-columns:2fr 3fr; gap:20px; }
+  @media (max-width:920px){ .grid-2, .grid-5{ grid-template-columns:1fr; } }
+
+  label.f{ display:block; font-family:'Oswald', sans-serif; font-size:10.5px; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; color:var(--gray); margin:12px 0 5px; }
+  label.f:first-child{ margin-top:0; }
+  input.f, select.f, textarea.f{ width:100%; padding:10px 11px; border:1px solid var(--line); border-radius:2px; font-family:'Work Sans', sans-serif; font-size:13.5px; background:var(--paper); color:var(--ink); }
+  input.f:focus, select.f:focus, textarea.f:focus{ outline:none; border-color:var(--teal); background:var(--white); }
+  input.f:disabled, select.f:disabled{ opacity:0.6; }
+  textarea.f{ resize:vertical; }
+  .row{ display:flex; gap:12px; }
+  .row > *{ flex:1; }
+
+  .btn{ font-family:'Oswald', sans-serif; font-size:12.5px; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; border:none; border-radius:2px; padding:11px 18px; cursor:pointer; transition:background 0.2s ease; }
+  .btn-primary{ background:var(--ink); color:var(--white); }
+  .btn-primary:hover{ background:var(--teal); }
+  .btn-danger{ background:var(--red); color:var(--white); }
+  .btn-danger:hover{ background:#a5121c; }
+  .btn:disabled{ opacity:0.35; cursor:default; }
+  .btn-block{ width:100%; margin-top:16px; }
+  .btn-sm{ padding:7px 12px; font-size:11px; }
+
+  .type-toggle{ display:flex; gap:8px; margin-bottom:18px; }
+  .type-toggle button{ flex:1; padding:10px; border-radius:2px; border:1px solid var(--line); background:var(--paper); font-family:'Oswald',sans-serif; font-size:12px; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; color:var(--gray); }
+  .type-toggle button.on-entrada.active{ background:var(--ink); color:var(--white); border-color:var(--ink); }
+  .type-toggle button.on-salida.active{ background:var(--red); color:var(--white); border-color:var(--red); }
+
+  table{ width:100%; border-collapse:collapse; font-size:13px; }
+  thead th{ text-align:left; font-family:'Oswald', sans-serif; font-size:10.5px; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; color:var(--gray); padding:8px 10px; border-bottom:1px solid var(--line); }
+  tbody td{ padding:9px 10px; border-bottom:1px solid #EFEDE9; vertical-align:middle; }
+  tbody tr:hover{ background:var(--paper); }
+  tfoot td{ padding:10px; font-weight:600; border-top:2px solid var(--line); }
+  .empty-row td{ text-align:center; color:var(--gray); padding:26px; }
+
+  .badge{ display:inline-block; padding:3px 9px; border-radius:10px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; }
+  .badge-entrada{ background:#E3E1DC; color:var(--ink); }
+  .badge-salida{ background:var(--red-dim); color:var(--red); }
+  .mono{ font-family:'Oswald', sans-serif; }
+  .muted{ color:var(--gray); }
+  .warn{ color:var(--red); font-weight:600; }
+
+  .fifo-box{ border:1px solid var(--red-dim); background:#FCF4F4; border-radius:2px; padding:12px; margin:14px 0; }
+  .fifo-box .fifo-title{ font-family:'Oswald', sans-serif; font-size:11px; font-weight:600; color:var(--red); letter-spacing:0.04em; margin-bottom:8px; }
+  .lot-btn{ width:100%; text-align:left; display:flex; justify-content:space-between; gap:10px; align-items:center; background:var(--white); border:1px solid var(--line); border-radius:2px; padding:8px 10px; margin-bottom:6px; cursor:pointer; font-size:12.5px; }
+  .lot-btn.selected{ border-color:var(--red); }
+  .lot-btn:hover{ border-color:var(--red); }
+
+  .alert{ border-radius:2px; padding:10px 14px; font-size:13px; margin-top:14px; }
+  .alert-warn{ background:#FDF3E6; color:#8a5a00; border:1px solid #F0DDB8; }
+  .alert-error{ background:var(--red-dim); color:var(--red); border:1px solid #efc4c8; }
+  .alert-ok{ background:#E6F2E6; color:var(--green); border:1px solid #c6e0c6; }
+
+  .icon-btn{ background:none; border:none; cursor:pointer; color:#C9C5BE; padding:2px; }
+  .icon-btn:hover{ color:var(--red); }
+
+  .hint{ font-size:11.5px; color:var(--gray); margin-top:6px; }
+  .footnote{ font-size:12px; color:var(--gray); margin-top:14px; }
+  .loading{ text-align:center; padding:60px 0; color:var(--gray); font-family:'Oswald', sans-serif; letter-spacing:0.08em; text-transform:uppercase; font-size:12px; }
+
+  .tarifa-card{ border:1px solid var(--line); border-radius:2px; padding:16px; margin-bottom:12px; }
+  .tarifa-card h3{ font-family:'Oswald', sans-serif; font-size:13px; font-weight:600; margin-bottom:10px; }
+  .tarifa-grid{ display:grid; grid-template-columns:repeat(5, 1fr); gap:10px; }
+  @media (max-width:920px){ .tarifa-grid{ grid-template-columns:1fr 1fr; } }
+  .tarifa-grid label{ font-family:'Oswald', sans-serif; font-size:9.5px; font-weight:500; letter-spacing:0.06em; text-transform:uppercase; color:var(--gray); display:block; margin-bottom:4px; }
+
+  .breakdown-row{ display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid #EFEDE9; font-size:13.5px; }
+  .breakdown-row .lbl{ color:var(--ink); }
+  .breakdown-row .sub{ color:var(--gray); font-size:11.5px; }
+  .breakdown-total{ display:flex; justify-content:space-between; padding:14px 0 0; font-family:'Oswald',sans-serif; font-size:16px; font-weight:600; }
+</style>
+</head>
+<body>
+
+  <div id="loginGate">
+    <div class="login-box">
+      <img src="logo-bauer.png" alt="Bauer Lemans">
+      <div class="kicker">Servicios Logísticos</div>
+      <form id="loginForm">
+        <label for="loginUser">Tu nombre</label>
+        <select id="loginUser" required><option value="">Selecciona tu nombre</option></select>
+        <label for="loginPass">Contraseña</label>
+        <div class="pw-field">
+          <input type="password" id="loginPass" autocomplete="current-password">
+          <button type="button" class="pw-toggle" data-target="loginPass" aria-label="Mostrar contraseña">👁</button>
+        </div>
+        <button type="submit">Ingresar</button>
+        <div class="error" id="loginError">Contraseña incorrecta.</div>
+      </form>
+    </div>
+  </div>
+
+  <div id="app" style="display:none;">
+    <header class="appbar">
+      <div class="wrap">
+        <div class="brand">
+          <img src="logo-bauer.png" alt="">
+          <div class="titles">
+            <h1>Servicios Logísticos</h1>
+            <p>Inventario + tarifas · a terceros</p>
+          </div>
+        </div>
+        <div class="top-controls">
+          <span id="welcomeUser" class="welcome-user"></span>
+          <a class="pill-btn" href="https://crm-lasingluten.github.io/">Portal</a>
+          <button id="logoutBtn" class="pill-btn" type="button">Salir</button>
+        </div>
+      </div>
+    </header>
+
+    <nav class="tabs">
+      <div class="wrap">
+        <button data-tab="setup" class="active">Clientes y productos</button>
+        <button data-tab="movimientos">Entradas y salidas</button>
+        <button data-tab="consulta">Consulta de stock</button>
+        <button data-tab="picking">Picking</button>
+        <button data-tab="tarifas">Tarifas</button>
+        <button data-tab="costo">Costo mensual</button>
+      </div>
+    </nav>
+
+    <main class="wrap">
+      <div id="tab-setup"></div>
+      <div id="tab-movimientos" style="display:none;"></div>
+      <div id="tab-consulta" style="display:none;"></div>
+      <div id="tab-picking" style="display:none;"></div>
+      <div id="tab-tarifas" style="display:none;"></div>
+      <div id="tab-costo" style="display:none;"></div>
+    </main>
+  </div>
+
+  <script>
+  (function(){
+    // ---------- Supabase ----------
+    var SB_URL = 'https://lbbpnnvwtanurtjqgcqv.supabase.co';
+    var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxiYnBubnZ3dGFudXJ0anFnY3F2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NjM2NDEsImV4cCI6MjA5MjMzOTY0MX0.a25lrgUlzDM4TSp4c6KOCQ3ERZnSk8-5r2y9DbhRPxg';
+    var HDR = { 'Content-Type':'application/json', 'apikey':SB_KEY, 'Authorization':'Bearer '+SB_KEY, 'Prefer':'return=representation' };
+    var SESSION_KEY = 'bauer_session';
+    var MODULO_KEY = 'servicios-logisticos';
+
+    function sbRpc(fn, body){
+      return fetch(SB_URL+'/rest/v1/rpc/'+fn, { method:'POST', headers: HDR, body: JSON.stringify(body||{}) })
+        .then(function(r){ return r.text().then(function(txt){
+          var data=null; if (txt){ try{ data=JSON.parse(txt); }catch(e){ data=null; } }
+          if (!r.ok) throw new Error((data&&data.message)||'Error de conexión');
+          return data===null? [] : data;
+        }); });
+    }
+    function sbTable(path, opts){
+      opts = opts || {};
+      var headers = HDR;
+      if (opts.upsert) headers = Object.assign({}, HDR, { 'Prefer':'resolution=merge-duplicates,return=representation' });
+      return fetch(SB_URL+'/rest/v1/'+path, { method: opts.method||'GET', headers: headers, body: opts.body? JSON.stringify(opts.body):undefined })
+        .then(function(r){ return r.text().then(function(txt){
+          var data=null; if (txt){ try{ data=JSON.parse(txt); }catch(e){ data=null; } }
+          if (!r.ok) throw new Error((data&&data.message)||'Error de conexión con Supabase');
+          return data||[];
+        }); });
+    }
+
+    // ---------- Estado ----------
+    var currentUser = null;
+    var clientes=[], productos=[], movimientos=[], tarifas=[];
+
+    // ---------- Utilidades ----------
+    function today(){ return new Date().toISOString().slice(0,10); }
+    function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+    function money(n){ return '€ ' + (Number(n)||0).toLocaleString('es-ES', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+    function unitsToBoxes(units, perBox){ if (!perBox||perBox<=0) return {boxes:0, remainder:units}; var b=Math.floor(units/perBox); return {boxes:b, remainder:units-b*perBox}; }
+    function fmtBoxes(units, perBox){ var r=unitsToBoxes(units,perBox); if(!perBox) return units+' u.'; if(r.remainder===0) return r.boxes+' caja'+(r.boxes!==1?'s':''); return r.boxes+' caja'+(r.boxes!==1?'s':'')+' + '+r.remainder+' u.'; }
+    function daysUntil(d){ if(!d) return null; var dt=new Date(d+'T00:00:00'); var now=new Date(); now.setHours(0,0,0,0); return Math.round((dt-now)/86400000); }
+    function clienteNombre(id){ var c=clientes.find(function(x){return x.id==id;}); return c?c.nombre:'—'; }
+    function productoNombre(id){ var p=productos.find(function(x){return x.id==id;}); return p?p.nombre:'—'; }
+    function productosDeCliente(cid){ return productos.filter(function(p){return p.cliente_id==cid;}); }
+    function tarifaDeCliente(cid){ return tarifas.find(function(t){return t.cliente_id==cid;}) || { tarifa_fija_mensual:0, tarifa_por_movimiento:0, tarifa_por_posicion:0, tarifa_por_unidad:0, tarifa_por_caja:0 }; }
+
+    function computeLots(clienteId, productoId, hastaFecha){
+      var map = {};
+      movimientos.filter(function(m){ return m.cliente_id==clienteId && m.producto_id==productoId && (!hastaFecha || m.fecha<=hastaFecha); })
+        .forEach(function(m){
+          var key = m.lote+'||'+m.posicion;
+          if (!map[key]) map[key] = { lote:m.lote, posicion:m.posicion, caducidad:null, entradas:0, salidas:0, primeraFecha:null };
+          var lot = map[key];
+          if (m.tipo==='entrada'){
+            lot.entradas += m.cantidad;
+            if (m.caducidad && (!lot.caducidad || m.caducidad<lot.caducidad)) lot.caducidad = m.caducidad;
+            if (!lot.primeraFecha || m.fecha<lot.primeraFecha) lot.primeraFecha = m.fecha;
+          } else { lot.salidas += m.cantidad; }
+        });
+      return Object.keys(map).map(function(k){ var l=map[k]; l.stock=l.entradas-l.salidas; return l; })
+        .filter(function(l){ return l.stock>0; })
+        .sort(function(a,b){
+          if (a.caducidad && b.caducidad){ if(a.caducidad!==b.caducidad) return a.caducidad<b.caducidad?-1:1; return (a.primeraFecha||'').localeCompare(b.primeraFecha||''); }
+          if (a.caducidad && !b.caducidad) return -1;
+          if (!a.caducidad && b.caducidad) return 1;
+          return (a.primeraFecha||'').localeCompare(b.primeraFecha||'');
+        });
+    }
+    function computePicking(clienteId, productoId, cantidad){
+      var lots = computeLots(clienteId, productoId);
+      var remaining = cantidad, plan=[];
+      lots.forEach(function(l){ if (remaining<=0) return; var take=Math.min(l.stock,remaining); plan.push(Object.assign({},l,{aTomar:take, restanteEnLote:l.stock-take})); remaining-=take; });
+      return { plan:plan, faltante: Math.max(remaining,0) };
+    }
+    function buildStockReport(filters){
+      var relProds = productos;
+      if (filters.clienteId) relProds = relProds.filter(function(p){return p.cliente_id==filters.clienteId;});
+      if (filters.productoId) relProds = relProds.filter(function(p){return p.id==filters.productoId;});
+      return relProds.map(function(p){
+        var allMovs = movimientos.filter(function(m){return m.producto_id==p.id;});
+        var inRange = allMovs.filter(function(m){ return (!filters.desde||m.fecha>=filters.desde) && (!filters.hasta||m.fecha<=filters.hasta); });
+        var entradasPeriodo = inRange.filter(function(m){return m.tipo==='entrada';}).reduce(function(s,m){return s+m.cantidad;},0);
+        var salidasPeriodo = inRange.filter(function(m){return m.tipo==='salida';}).reduce(function(s,m){return s+m.cantidad;},0);
+        var upToHasta = filters.hasta ? allMovs.filter(function(m){return m.fecha<=filters.hasta;}) : allMovs;
+        var totalEntradas = upToHasta.filter(function(m){return m.tipo==='entrada';}).reduce(function(s,m){return s+m.cantidad;},0);
+        var totalSalidas = upToHasta.filter(function(m){return m.tipo==='salida';}).reduce(function(s,m){return s+m.cantidad;},0);
+        return { clienteNombre:clienteNombre(p.cliente_id), productoNombre:p.nombre, unitsPerBox:p.unidades_por_caja, entradasPeriodo:entradasPeriodo, salidasPeriodo:salidasPeriodo, stockUnidades: totalEntradas-totalSalidas };
+      });
+    }
+
+    // Cálculo de costo mensual para un cliente y un mes 'YYYY-MM'
+    function computeMonthlyCost(clienteId, yearMonth){
+      var start = yearMonth+'-01';
+      var endDate = new Date(Number(yearMonth.slice(0,4)), Number(yearMonth.slice(5,7)), 0);
+      var end = endDate.toISOString().slice(0,10);
+
+      var movsCliente = movimientos.filter(function(m){ return m.cliente_id==clienteId && m.fecha>=start && m.fecha<=end; });
+      var cantMovimientos = movsCliente.length;
+      var unidadesMovidas = movsCliente.reduce(function(s,m){ return s+m.cantidad; }, 0);
+      var cajasMovidas = movsCliente.reduce(function(s,m){
+        var p = productos.find(function(x){return x.id==m.producto_id;});
+        if (!p || !p.unidades_por_caja) return s;
+        return s + Math.floor(m.cantidad / p.unidades_por_caja);
+      }, 0);
+
+      // posiciones ocupadas: distintas posiciones con stock > 0 al cierre del mes (snapshot)
+      var posSet = {};
+      productosDeCliente(clienteId).forEach(function(p){
+        computeLots(clienteId, p.id, end).forEach(function(l){ posSet[l.posicion] = true; });
+      });
+      var posicionesOcupadas = Object.keys(posSet).length;
+
+      var t = tarifaDeCliente(clienteId);
+      var costoFijo = Number(t.tarifa_fija_mensual)||0;
+      var costoMovimientos = cantMovimientos * (Number(t.tarifa_por_movimiento)||0);
+      var costoPosiciones = posicionesOcupadas * (Number(t.tarifa_por_posicion)||0);
+      var costoUnidades = unidadesMovidas * (Number(t.tarifa_por_unidad)||0);
+      var costoCajas = cajasMovidas * (Number(t.tarifa_por_caja)||0);
+      var total = costoFijo + costoMovimientos + costoPosiciones + costoUnidades + costoCajas;
+
+      return {
+        clienteId: clienteId, yearMonth: yearMonth,
+        cantMovimientos: cantMovimientos, unidadesMovidas: unidadesMovidas, cajasMovidas: cajasMovidas, posicionesOcupadas: posicionesOcupadas,
+        costoFijo: costoFijo, costoMovimientos: costoMovimientos, costoPosiciones: costoPosiciones, costoUnidades: costoUnidades, costoCajas: costoCajas,
+        total: total, tarifa: t
+      };
+    }
+
+    // ---------- Carga de datos ----------
+    function loadData(){
+      return Promise.all([
+        sbTable('sl_clientes?select=*&order=nombre.asc'),
+        sbTable('sl_productos?select=*&order=nombre.asc'),
+        sbTable('sl_movimientos?select=*&order=fecha.desc,created_at.desc'),
+        sbTable('sl_tarifas?select=*')
+      ]).then(function(res){ clientes=res[0]; productos=res[1]; movimientos=res[2]; tarifas=res[3]; });
+    }
+
+    function renderAll(){ renderSetup(); renderMovimientos(); renderConsulta(); renderPicking(); renderTarifas(); renderCosto(); }
+
+    // ===== Clientes y productos =====
+    function renderSetup(){
+      var el = document.getElementById('tab-setup');
+      el.innerHTML =
+        '<div class="grid-2">' +
+          '<section class="panel"><h2>Clientes</h2>' +
+            '<div class="row"><input class="f" id="newClienteNombre" placeholder="Nombre del cliente">' +
+            '<button class="btn btn-primary" id="addClienteBtn" style="flex:0 0 auto;">Agregar</button></div>' +
+            '<table style="margin-top:16px;"><tbody id="clientesList"></tbody></table></section>' +
+          '<section class="panel"><h2>Productos por cliente</h2>' +
+            '<select class="f" id="prodClienteSel"><option value="">Seleccionar cliente…</option></select>' +
+            '<input class="f" id="prodNombre" placeholder="Nombre del producto">' +
+            '<input class="f" id="prodUnidadesCaja" type="number" min="0" placeholder="Unidades por caja (cupo de caja)">' +
+            '<button class="btn btn-primary btn-block" id="addProductoBtn">Agregar producto</button>' +
+            '<div id="productosPorCliente" style="margin-top:18px;"></div></section>' +
+        '</div>';
+
+      var clientesSel = el.querySelector('#prodClienteSel');
+      clientes.forEach(function(c){ clientesSel.innerHTML += '<option value="'+c.id+'">'+esc(c.nombre)+'</option>'; });
+
+      el.querySelector('#clientesList').innerHTML = clientes.length ? clientes.map(function(c){
+        return '<tr><td>'+esc(c.nombre)+'</td><td style="text-align:right;width:36px;"><button class="icon-btn" data-del-cliente="'+c.id+'">✕</button></td></tr>';
+      }).join('') : '<tr class="empty-row"><td>Todavía no hay clientes cargados.</td></tr>';
+
+      var byClient = el.querySelector('#productosPorCliente');
+      byClient.innerHTML = clientes.map(function(c){
+        var prods = productosDeCliente(c.id);
+        if (!prods.length) return '';
+        return '<p style="font-family:Oswald,sans-serif;font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--gray);margin:14px 0 6px;">'+esc(c.nombre)+'</p>' +
+          '<table><tbody>' + prods.map(function(p){
+            return '<tr><td>'+esc(p.nombre)+' <span class="muted mono" style="font-size:11px;">('+(p.unidades_por_caja>0? p.unidades_por_caja+' u./caja':'sin cupo de caja')+')</span></td>' +
+              '<td style="text-align:right;width:36px;"><button class="icon-btn" data-del-producto="'+p.id+'">✕</button></td></tr>';
+          }).join('') + '</tbody></table>';
+      }).join('') || '<p class="muted" style="font-size:13px;">Todavía no hay productos cargados.</p>';
+
+      el.querySelector('#addClienteBtn').addEventListener('click', function(){
+        var nombre = el.querySelector('#newClienteNombre').value.trim();
+        if (!nombre) return;
+        sbTable('sl_clientes', { method:'POST', body:{ nombre: nombre } }).then(loadData).then(renderAll)
+          .catch(function(e){ alert('No se pudo guardar: '+e.message); });
+      });
+      el.querySelectorAll('[data-del-cliente]').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var id = btn.getAttribute('data-del-cliente');
+          if (productosDeCliente(id).length){ alert('Este cliente tiene productos cargados. Eliminá primero sus productos.'); return; }
+          if (!confirm('¿Eliminar este cliente?')) return;
+          sbTable('sl_clientes?id=eq.'+id, { method:'DELETE' }).then(loadData).then(renderAll)
+            .catch(function(e){ alert('No se pudo eliminar: '+e.message); });
+        });
+      });
+      el.querySelector('#addProductoBtn').addEventListener('click', function(){
+        var clienteId = el.querySelector('#prodClienteSel').value;
+        var nombre = el.querySelector('#prodNombre').value.trim();
+        var perBox = Number(el.querySelector('#prodUnidadesCaja').value)||0;
+        if (!clienteId || !nombre) return;
+        sbTable('sl_productos', { method:'POST', body:{ cliente_id:Number(clienteId), nombre:nombre, unidades_por_caja:perBox } })
+          .then(loadData).then(renderAll).catch(function(e){ alert('No se pudo guardar: '+e.message); });
+      });
+      el.querySelectorAll('[data-del-producto]').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var id = btn.getAttribute('data-del-producto');
+          if (movimientos.some(function(m){return m.producto_id==id;})){ alert('Este producto tiene movimientos registrados. No se puede eliminar.'); return; }
+          if (!confirm('¿Eliminar este producto?')) return;
+          sbTable('sl_productos?id=eq.'+id, { method:'DELETE' }).then(loadData).then(renderAll)
+            .catch(function(e){ alert('No se pudo eliminar: '+e.message); });
+        });
+      });
+    }
+
+    // ===== Entradas y salidas =====
+    var movState = { tipo:'entrada', clienteId:'', productoId:'', selectedLotKey:'' };
+
+    function renderMovimientos(){
+      var el = document.getElementById('tab-movimientos');
+      var prods = movState.clienteId ? productosDeCliente(movState.clienteId) : [];
+      var product = productos.find(function(p){return p.id==movState.productoId;});
+      var lots = (movState.tipo==='salida' && movState.clienteId && movState.productoId) ? computeLots(movState.clienteId, movState.productoId) : [];
+      var selectedLot = lots.find(function(l){ return (l.lote+'||'+l.posicion)===movState.selectedLotKey; });
+      var posOptions = '<option value="">—</option>'; for (var n=1;n<=50;n++) posOptions += '<option value="'+n+'">'+n+'</option>';
+
+      el.innerHTML =
+        '<div class="grid-5">' +
+          '<section class="panel">' +
+            '<div class="type-toggle">' +
+              '<button class="on-entrada'+(movState.tipo==='entrada'?' active':'')+'" data-set-tipo="entrada">Entrada</button>' +
+              '<button class="on-salida'+(movState.tipo==='salida'?' active':'')+'" data-set-tipo="salida">Salida</button>' +
+            '</div>' +
+            '<label class="f">Cliente</label><select class="f" id="mCliente"><option value="">Seleccionar cliente…</option>' +
+              clientes.map(function(c){return '<option value="'+c.id+'"'+(c.id==movState.clienteId?' selected':'')+'>'+esc(c.nombre)+'</option>';}).join('') + '</select>' +
+            '<label class="f">Producto</label><select class="f" id="mProducto" '+(!movState.clienteId?'disabled':'')+'>' +
+              '<option value="">'+(movState.clienteId?'Seleccionar producto…':'Elegí un cliente primero')+'</option>' +
+              prods.map(function(p){return '<option value="'+p.id+'"'+(p.id==movState.productoId?' selected':'')+'>'+esc(p.nombre)+'</option>';}).join('') + '</select>' +
+
+            (movState.tipo==='salida' && movState.productoId ? (
+              '<div class="fifo-box"><div class="fifo-title">Sugerencia FEFO — primero el que vence más próximo</div>' +
+                (lots.length===0 ? '<p style="font-size:12.5px;color:var(--red);">No hay stock disponible para este producto.</p>' :
+                  lots.map(function(l){
+                    var key=l.lote+'||'+l.posicion; var dleft=daysUntil(l.caducidad); var soon = dleft!==null && dleft<=30;
+                    return '<button type="button" class="lot-btn'+(key===movState.selectedLotKey?' selected':'')+'" data-lot="'+esc(key)+'">' +
+                      '<span class="mono">Lote '+esc(l.lote)+' · Pos. '+l.posicion+'</span>' +
+                      '<span>'+(l.caducidad?'<span class="'+(soon?'warn':'muted')+'">vence '+l.caducidad+'</span> · ':'')+'<strong>'+l.stock+' u.</strong></span></button>';
+                  }).join('')) + '</div>'
+            ) : '') +
+
+            '<div class="row"><div><label class="f">Nº de lote</label>' +
+              '<input class="f" id="mLote" value="'+esc(selectedLot?selectedLot.lote:'')+'" '+(movState.tipo==='salida'?'readonly':'')+'></div>' +
+              '<div><label class="f">Posición (1-50)</label><select class="f" id="mPosicion" '+(movState.tipo==='salida'?'disabled':'')+'>'+posOptions+'</select></div></div>' +
+            '<label class="f">Fecha de caducidad</label><input class="f" id="mCaducidad" type="date" value="'+esc(selectedLot?selectedLot.caducidad||'':'')+'" '+(movState.tipo==='salida'?'readonly':'')+'>' +
+            '<label class="f">Cantidad (unidades)'+(selectedLot?' · disponible: '+selectedLot.stock:'')+'</label>' +
+            '<input class="f" id="mCantidad" type="number" min="1"><div class="hint" id="mCantidadHint"></div>' +
+            '<label class="f">Fecha del movimiento</label><input class="f" id="mFecha" type="date" value="'+today()+'">' +
+            '<label class="f">Transporte</label><input class="f" id="mTransporte" placeholder="Empresa / chofer / patente">' +
+            '<label class="f">Comentarios</label><textarea class="f" id="mComentarios" rows="2"></textarea>' +
+            '<div id="mError"></div>' +
+            '<button class="btn btn-block '+(movState.tipo==='entrada'?'btn-primary':'btn-danger')+'" id="mSubmit">Registrar '+(movState.tipo==='entrada'?'entrada':'salida')+'</button>' +
+          '</section>' +
+          '<section class="panel"><h2>Últimos movimientos</h2><div style="overflow-x:auto;">' +
+            '<table><thead><tr><th>Fecha</th><th>Tipo</th><th>Cliente</th><th>Producto</th><th>Lote</th><th>Pos.</th><th>Cant.</th><th>Transporte</th><th></th></tr></thead>' +
+            '<tbody id="movList"></tbody></table></div></section>' +
+        '</div>';
+
+      if (movState.tipo==='salida' && selectedLot) el.querySelector('#mPosicion').value = String(selectedLot.posicion);
+
+      var recent = movimientos.slice(0,30);
+      el.querySelector('#movList').innerHTML = recent.length ? recent.map(function(m){
+        return '<tr><td class="muted">'+m.fecha+'</td><td><span class="badge badge-'+m.tipo+'">'+(m.tipo==='entrada'?'Entrada':'Salida')+'</span></td>' +
+          '<td>'+esc(clienteNombre(m.cliente_id))+'</td><td>'+esc(productoNombre(m.producto_id))+'</td>' +
+          '<td class="mono">'+esc(m.lote)+'</td><td class="mono">'+m.posicion+'</td><td>'+m.cantidad+'</td>' +
+          '<td class="muted">'+esc(m.transporte||'—')+'</td><td style="text-align:right;"><button class="icon-btn" data-del-mov="'+m.id+'">✕</button></td></tr>';
+      }).join('') : '<tr class="empty-row"><td colspan="9">Sin movimientos registrados todavía.</td></tr>';
+
+      el.querySelectorAll('[data-del-mov]').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          if (!confirm('¿Eliminar este movimiento?')) return;
+          sbTable('sl_movimientos?id=eq.'+btn.getAttribute('data-del-mov'), { method:'DELETE' }).then(loadData).then(renderAll)
+            .catch(function(e){ alert('No se pudo eliminar: '+e.message); });
+        });
+      });
+      el.querySelectorAll('[data-set-tipo]').forEach(function(btn){
+        btn.addEventListener('click', function(){ movState.tipo=btn.getAttribute('data-set-tipo'); movState.selectedLotKey=''; renderMovimientos(); });
+      });
+      el.querySelector('#mCliente').addEventListener('change', function(e){ movState.clienteId=e.target.value; movState.productoId=''; movState.selectedLotKey=''; renderMovimientos(); });
+      el.querySelector('#mProducto').addEventListener('change', function(e){ movState.productoId=e.target.value; movState.selectedLotKey=''; renderMovimientos(); });
+      el.querySelectorAll('[data-lot]').forEach(function(btn){ btn.addEventListener('click', function(){ movState.selectedLotKey=btn.getAttribute('data-lot'); renderMovimientos(); }); });
+
+      var cantInput = el.querySelector('#mCantidad');
+      function updateHint(){
+        var cant = Number(cantInput.value)||0;
+        var msgs=[]; if (product && product.unidades_por_caja>0 && cant>0) msgs.push('≈ '+fmtBoxes(cant, product.unidades_por_caja));
+        el.querySelector('#mCantidadHint').innerHTML = msgs.join(' · ');
+        var err = el.querySelector('#mError');
+        err.innerHTML = (movState.tipo==='salida' && selectedLot && cant>selectedLot.stock) ? '<div class="alert alert-error">Supera el stock disponible en ese lote.</div>' : '';
+      }
+      cantInput.addEventListener('input', updateHint);
+
+      el.querySelector('#mSubmit').addEventListener('click', function(){
+        var clienteId=movState.clienteId, productoId=movState.productoId;
+        var lote = el.querySelector('#mLote').value.trim();
+        var posicion = Number(el.querySelector('#mPosicion').value);
+        var caducidad = el.querySelector('#mCaducidad').value || null;
+        var cantidad = Number(cantInput.value);
+        var fecha = el.querySelector('#mFecha').value || today();
+        var transporte = el.querySelector('#mTransporte').value.trim();
+        var comentarios = el.querySelector('#mComentarios').value.trim();
+        if (!clienteId||!productoId||!lote||!posicion||!cantidad||cantidad<=0){ alert('Completá cliente, producto, lote, posición y cantidad.'); return; }
+        if (movState.tipo==='salida' && (!selectedLot || cantidad>selectedLot.stock)){ alert('Elegí un lote sugerido con stock suficiente.'); return; }
+        sbTable('sl_movimientos', { method:'POST', body:{
+          tipo: movState.tipo, cliente_id:Number(clienteId), producto_id:Number(productoId), lote:lote, posicion:posicion,
+          caducidad:caducidad, cantidad:cantidad, fecha:fecha, transporte:transporte, comentarios:comentarios,
+          usuario: currentUser? currentUser.nombre : null
+        }}).then(function(){ movState.selectedLotKey=''; return loadData(); }).then(renderAll)
+        .catch(function(e){ alert('No se pudo registrar: '+e.message); });
+      });
+    }
+
+    // ===== Consulta de stock =====
+    var consultaState = { clienteId:'', productoId:'', desde:'', hasta:'' };
+    function renderConsulta(){
+      var el = document.getElementById('tab-consulta');
+      var prods = consultaState.clienteId ? productosDeCliente(consultaState.clienteId) : [];
+      var rows = buildStockReport(consultaState);
+      el.innerHTML =
+        '<section class="panel"><h2>Filtros</h2><div class="row">' +
+          '<div><label class="f">Cliente</label><select class="f" id="cCliente"><option value="">Todos</option>' +
+            clientes.map(function(c){return '<option value="'+c.id+'"'+(c.id==consultaState.clienteId?' selected':'')+'>'+esc(c.nombre)+'</option>';}).join('') + '</select></div>' +
+          '<div><label class="f">Producto</label><select class="f" id="cProducto" '+(!consultaState.clienteId?'disabled':'')+'>' +
+            '<option value="">'+(consultaState.clienteId?'Todos':'Elegí un cliente')+'</option>' +
+            prods.map(function(p){return '<option value="'+p.id+'"'+(p.id==consultaState.productoId?' selected':'')+'>'+esc(p.nombre)+'</option>';}).join('') + '</select></div>' +
+          '<div><label class="f">Desde</label><input class="f" id="cDesde" type="date" value="'+consultaState.desde+'"></div>' +
+          '<div><label class="f">Hasta</label><input class="f" id="cHasta" type="date" value="'+consultaState.hasta+'"></div>' +
+        '</div></section>' +
+        '<section class="panel"><h2>Resultado</h2><div style="overflow-x:auto;"><table><thead><tr>' +
+          '<th>Cliente</th><th>Producto</th><th>Entradas (u.)</th><th>Entradas (cajas)</th><th>Salidas (u.)</th><th>Salidas (cajas)</th><th>Stock (u.)</th><th>Stock (cajas)</th>' +
+        '</tr></thead><tbody id="cRows"></tbody></table></div>' +
+        '<p class="footnote">"Stock" se calcula acumulado hasta la fecha "Hasta" (o a hoy si no se define). "Entradas" y "Salidas" corresponden solo al período filtrado.</p></section>';
+
+      el.querySelector('#cRows').innerHTML = rows.length ? rows.map(function(r){
+        return '<tr><td>'+esc(r.clienteNombre)+'</td><td>'+esc(r.productoNombre)+'</td>' +
+          '<td>'+r.entradasPeriodo+'</td><td class="muted">'+fmtBoxes(r.entradasPeriodo, r.unitsPerBox)+'</td>' +
+          '<td>'+r.salidasPeriodo+'</td><td class="muted">'+fmtBoxes(r.salidasPeriodo, r.unitsPerBox)+'</td>' +
+          '<td style="font-weight:600;">'+r.stockUnidades+'</td><td style="font-weight:600;color:var(--teal);">'+fmtBoxes(r.stockUnidades, r.unitsPerBox)+'</td></tr>';
+      }).join('') : '<tr class="empty-row"><td colspan="8">No hay productos que coincidan con el filtro.</td></tr>';
+
+      el.querySelector('#cCliente').addEventListener('change', function(e){ consultaState.clienteId=e.target.value; consultaState.productoId=''; renderConsulta(); });
+      el.querySelector('#cProducto').addEventListener('change', function(e){ consultaState.productoId=e.target.value; renderConsulta(); });
+      el.querySelector('#cDesde').addEventListener('change', function(e){ consultaState.desde=e.target.value; renderConsulta(); });
+      el.querySelector('#cHasta').addEventListener('change', function(e){ consultaState.hasta=e.target.value; renderConsulta(); });
+    }
+
+    // ===== Picking =====
+    var pickingState = { clienteId:'', productoId:'', cantidad:'', result:null };
+    function renderPicking(){
+      var el = document.getElementById('tab-picking');
+      var prods = pickingState.clienteId ? productosDeCliente(pickingState.clienteId) : [];
+      var product = productos.find(function(p){return p.id==pickingState.productoId;});
+      el.innerHTML =
+        '<div class="grid-5"><section class="panel"><h2>Generar picking</h2>' +
+          '<label class="f">Cliente</label><select class="f" id="pCliente"><option value="">Seleccionar cliente…</option>' +
+            clientes.map(function(c){return '<option value="'+c.id+'"'+(c.id==pickingState.clienteId?' selected':'')+'>'+esc(c.nombre)+'</option>';}).join('') + '</select>' +
+          '<label class="f">Producto</label><select class="f" id="pProducto" '+(!pickingState.clienteId?'disabled':'')+'>' +
+            '<option value="">'+(pickingState.clienteId?'Seleccionar producto…':'Elegí un cliente primero')+'</option>' +
+            prods.map(function(p){return '<option value="'+p.id+'"'+(p.id==pickingState.productoId?' selected':'')+'>'+esc(p.nombre)+'</option>';}).join('') + '</select>' +
+          '<label class="f">Cantidad solicitada (unidades)</label><input class="f" id="pCantidad" type="number" min="1" value="'+esc(pickingState.cantidad)+'">' +
+          '<div class="hint" id="pHint"></div><button class="btn btn-primary btn-block" id="pSubmit">Calcular picking FEFO</button></section>' +
+          '<section class="panel"><h2>Hoja de picking</h2><div id="pResult"></div></section></div>';
+
+      function updateHint(){ var cant=Number(el.querySelector('#pCantidad').value)||0; el.querySelector('#pHint').innerHTML = (product && product.unidades_por_caja>0 && cant>0) ? '≈ '+fmtBoxes(cant, product.unidades_por_caja) : ''; }
+      updateHint(); el.querySelector('#pCantidad').addEventListener('input', updateHint);
+      el.querySelector('#pCliente').addEventListener('change', function(e){ pickingState.clienteId=e.target.value; pickingState.productoId=''; pickingState.result=null; renderPicking(); });
+      el.querySelector('#pProducto').addEventListener('change', function(e){ pickingState.productoId=e.target.value; pickingState.result=null; renderPicking(); });
+      el.querySelector('#pSubmit').addEventListener('click', function(){
+        var cant = Number(el.querySelector('#pCantidad').value);
+        if (!pickingState.clienteId||!pickingState.productoId||!cant||cant<=0) return;
+        pickingState.cantidad=cant; pickingState.result=computePicking(pickingState.clienteId, pickingState.productoId, cant);
+        renderPickingResult();
+      });
+      renderPickingResult();
+      function renderPickingResult(){
+        var box = el.querySelector('#pResult'); var r = pickingState.result;
+        if (!r){ box.innerHTML='<p class="muted" style="font-size:13px;">Completá los datos y calculá el picking para ver la sugerencia FEFO.</p>'; return; }
+        var html='';
+        if (r.plan.length===0){ html+='<div class="alert alert-error">No hay stock disponible para este producto.</div>'; }
+        else {
+          html += '<table><thead><tr><th>#</th><th>Lote</th><th>Caducidad</th><th>Posición</th><th>A retirar</th><th>Restante en lote</th></tr></thead><tbody>' +
+            r.plan.map(function(l,i){ var dleft=daysUntil(l.caducidad); var soon=dleft!==null&&dleft<=30;
+              return '<tr><td class="muted">'+(i+1)+'</td><td class="mono">'+esc(l.lote)+'</td><td class="'+(soon?'warn':'')+'">'+(l.caducidad||'—')+'</td>' +
+                '<td class="mono">Pos. '+l.posicion+'</td><td style="font-weight:600;">'+l.aTomar+' u.</td><td class="muted">'+l.restanteEnLote+' u.</td></tr>'; }).join('') + '</tbody></table>';
+        }
+        if (r.faltante>0) html += '<div class="alert alert-warn">Stock insuficiente: faltan <strong>'+r.faltante+' unidades</strong> para completar lo solicitado.</div>';
+        box.innerHTML = html;
+      }
+    }
+
+    // ===== Tarifas =====
+    function renderTarifas(){
+      var el = document.getElementById('tab-tarifas');
+      el.innerHTML = '<section class="panel"><h2>Tarifas por cliente</h2>' +
+        '<p class="sub">Dejá en 0 el componente que no aplique para ese cliente — se pueden combinar varios a la vez.</p>' +
+        '<div id="tarifasList"></div></section>';
+
+      var list = el.querySelector('#tarifasList');
+      if (!clientes.length){ list.innerHTML = '<p class="muted" style="font-size:13px;">Cargá clientes primero en la pestaña "Clientes y productos".</p>'; return; }
+
+      list.innerHTML = clientes.map(function(c){
+        var t = tarifaDeCliente(c.id);
+        return '<div class="tarifa-card" data-cliente="'+c.id+'"><h3>'+esc(c.nombre)+'</h3>' +
+          '<div class="tarifa-grid">' +
+            '<div><label>Fija mensual (€)</label><input class="f t-fija" type="number" step="0.01" min="0" value="'+(t.tarifa_fija_mensual||0)+'"></div>' +
+            '<div><label>Por movimiento (€)</label><input class="f t-mov" type="number" step="0.01" min="0" value="'+(t.tarifa_por_movimiento||0)+'"></div>' +
+            '<div><label>Por posición/mes (€)</label><input class="f t-pos" type="number" step="0.01" min="0" value="'+(t.tarifa_por_posicion||0)+'"></div>' +
+            '<div><label>Por unidad (€)</label><input class="f t-uni" type="number" step="0.01" min="0" value="'+(t.tarifa_por_unidad||0)+'"></div>' +
+            '<div><label>Por caja (€)</label><input class="f t-caja" type="number" step="0.01" min="0" value="'+(t.tarifa_por_caja||0)+'"></div>' +
+          '</div>' +
+          '<button class="btn btn-primary btn-sm" style="margin-top:12px;" data-save-tarifa="'+c.id+'">Guardar tarifa</button>' +
+          '<span class="hint" data-msg-tarifa="'+c.id+'" style="margin-left:10px;"></span>' +
+        '</div>';
+      }).join('');
+
+      list.querySelectorAll('[data-save-tarifa]').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var cid = btn.getAttribute('data-save-tarifa');
+          var card = list.querySelector('.tarifa-card[data-cliente="'+cid+'"]');
+          var body = {
+            cliente_id: Number(cid),
+            tarifa_fija_mensual: Number(card.querySelector('.t-fija').value)||0,
+            tarifa_por_movimiento: Number(card.querySelector('.t-mov').value)||0,
+            tarifa_por_posicion: Number(card.querySelector('.t-pos').value)||0,
+            tarifa_por_unidad: Number(card.querySelector('.t-uni').value)||0,
+            tarifa_por_caja: Number(card.querySelector('.t-caja').value)||0,
+            actualizado_en: new Date().toISOString()
+          };
+          var msgEl = list.querySelector('[data-msg-tarifa="'+cid+'"]');
+          var existing = tarifas.find(function(t){return t.cliente_id==cid;});
+          var req = existing
+            ? sbTable('sl_tarifas?id=eq.'+existing.id, { method:'PATCH', body: body })
+            : sbTable('sl_tarifas', { method:'POST', body: body });
+          req.then(loadData).then(function(){
+            renderTarifas(); renderCosto();
+            var m = document.querySelector('[data-msg-tarifa="'+cid+'"]');
+            if (m){ m.textContent='✓ Guardado'; m.style.color='var(--green)'; setTimeout(function(){ m.textContent=''; }, 2000); }
+          }).catch(function(e){ msgEl.textContent='Error al guardar'; msgEl.style.color='var(--red)'; console.error(e); });
+        });
+      });
+    }
+
+    // ===== Costo mensual =====
+    var costoState = { clienteId:'', mes: today().slice(0,7) };
+    function renderCosto(){
+      var el = document.getElementById('tab-costo');
+      el.innerHTML =
+        '<section class="panel"><h2>Calcular costo mensual</h2><div class="row">' +
+          '<div><label class="f">Cliente</label><select class="f" id="kCliente"><option value="">Todos los clientes</option>' +
+            clientes.map(function(c){return '<option value="'+c.id+'"'+(c.id==costoState.clienteId?' selected':'')+'>'+esc(c.nombre)+'</option>';}).join('') + '</select></div>' +
+          '<div><label class="f">Mes</label><input class="f" id="kMes" type="month" value="'+costoState.mes+'"></div>' +
+        '</div></section>' +
+        '<div id="kResult" style="margin-top:20px;"></div>';
+
+      el.querySelector('#kCliente').addEventListener('change', function(e){ costoState.clienteId=e.target.value; renderKResult(); });
+      el.querySelector('#kMes').addEventListener('change', function(e){ costoState.mes=e.target.value; renderKResult(); });
+      renderKResult();
+
+      function renderKResult(){
+        var box = document.getElementById('kResult');
+        if (!clientes.length){ box.innerHTML=''; return; }
+        if (!costoState.clienteId){
+          // resumen de todos los clientes para el mes
+          var rows = clientes.map(function(c){ return computeMonthlyCost(c.id, costoState.mes); });
+          var granTotal = rows.reduce(function(s,r){return s+r.total;},0);
+          box.innerHTML = '<section class="panel"><h2>Resumen — '+costoState.mes+'</h2><div style="overflow-x:auto;"><table><thead><tr>' +
+            '<th>Cliente</th><th>Movs.</th><th>Unidades</th><th>Cajas</th><th>Posiciones</th><th>Total</th>' +
+            '</tr></thead><tbody>' +
+            rows.map(function(r){ return '<tr><td>'+esc(clienteNombre(r.clienteId))+'</td><td>'+r.cantMovimientos+'</td><td>'+r.unidadesMovidas+'</td>' +
+              '<td>'+r.cajasMovidas+'</td><td>'+r.posicionesOcupadas+'</td><td style="font-weight:600;">'+money(r.total)+'</td></tr>'; }).join('') +
+            '</tbody><tfoot><tr><td colspan="5">Total del mes</td><td>'+money(granTotal)+'</td></tr></tfoot></table></div></section>';
+        } else {
+          var r = computeMonthlyCost(costoState.clienteId, costoState.mes);
+          box.innerHTML = '<section class="panel"><h2>'+esc(clienteNombre(r.clienteId))+' — '+costoState.mes+'</h2>' +
+            '<div class="breakdown-row"><span class="lbl">Tarifa fija mensual</span><span>'+money(r.costoFijo)+'</span></div>' +
+            '<div class="breakdown-row"><span class="lbl">Movimientos<span class="sub"> · '+r.cantMovimientos+' × '+money(r.tarifa.tarifa_por_movimiento)+'</span></span><span>'+money(r.costoMovimientos)+'</span></div>' +
+            '<div class="breakdown-row"><span class="lbl">Posiciones ocupadas<span class="sub"> · '+r.posicionesOcupadas+' × '+money(r.tarifa.tarifa_por_posicion)+'</span></span><span>'+money(r.costoPosiciones)+'</span></div>' +
+            '<div class="breakdown-row"><span class="lbl">Unidades movidas<span class="sub"> · '+r.unidadesMovidas+' × '+money(r.tarifa.tarifa_por_unidad)+'</span></span><span>'+money(r.costoUnidades)+'</span></div>' +
+            '<div class="breakdown-row"><span class="lbl">Cajas movidas<span class="sub"> · '+r.cajasMovidas+' × '+money(r.tarifa.tarifa_por_caja)+'</span></span><span>'+money(r.costoCajas)+'</span></div>' +
+            '<div class="breakdown-total"><span>Total del mes</span><span>'+money(r.total)+'</span></div>' +
+            '</section>' +
+            '<p class="footnote">"Posiciones ocupadas" es una foto al último día del mes (posiciones con stock &gt; 0 a esa fecha). "Cajas movidas" cuenta solo cajas completas por movimiento (unidades sueltas no se prorratean).</p>';
+        }
+      }
+    }
+
+    // ---------- Tabs ----------
+    document.querySelectorAll('nav.tabs button').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        document.querySelectorAll('nav.tabs button').forEach(function(b){ b.classList.remove('active'); });
+        btn.classList.add('active');
+        ['setup','movimientos','consulta','picking','tarifas','costo'].forEach(function(t){
+          document.getElementById('tab-'+t).style.display = (t===btn.getAttribute('data-tab')) ? '' : 'none';
+        });
+      });
+    });
+
+    // ---------- Login ----------
+    var gate=document.getElementById('loginGate'), loginUser=document.getElementById('loginUser'), loginPass=document.getElementById('loginPass');
+    var loginError=document.getElementById('loginError'), loginForm=document.getElementById('loginForm');
+    var appEl=document.getElementById('app'), welcomeUser=document.getElementById('welcomeUser'), logoutBtn=document.getElementById('logoutBtn');
+
+    function loadUsersDropdown(){
+      sbRpc('rpc_nombres_usuarios', {}).then(function(rows){
+        loginUser.innerHTML = '<option value="">Selecciona tu nombre</option>' + rows.map(function(r){ var n=esc(r.nombre); return '<option value="'+n+'">'+n+'</option>'; }).join('');
+      }).catch(function(){});
+    }
+    function tienePermiso(user){ if (user.admin) return true; var p=(user.modulos||'').split('|').filter(Boolean); return p.indexOf(MODULO_KEY)!==-1; }
+
+    function boot(user){
+      currentUser = user;
+      gate.classList.add('hidden');
+      appEl.style.display='';
+      welcomeUser.textContent = user.nombre;
+      document.getElementById('tab-setup').innerHTML = '<div class="loading">Cargando datos…</div>';
+      loadData().then(renderAll).catch(function(e){
+        document.getElementById('tab-setup').innerHTML = '<div class="alert alert-error">No se pudieron cargar los datos: '+esc(e.message)+'</div>';
+      });
+    }
+
+    var savedSession=null;
+    try { savedSession = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch(e){}
+    if (savedSession && savedSession.nombre){
+      if (tienePermiso(savedSession)) boot(savedSession);
+      else { loginError.textContent='No tenés acceso a este módulo.'; loginError.classList.add('show'); loadUsersDropdown(); }
+    } else { loadUsersDropdown(); }
+
+    loginForm.addEventListener('submit', function(e){
+      e.preventDefault();
+      var nombre=loginUser.value, pass=loginPass.value;
+      loginError.classList.remove('show');
+      if (!nombre){ loginError.textContent='Selecciona tu nombre.'; loginError.classList.add('show'); return; }
+      if (!pass){ loginError.textContent='Ingresa tu contraseña.'; loginError.classList.add('show'); return; }
+      sbRpc('rpc_login', { p_nombre:nombre, p_password:pass }).then(function(rows){
+        if (!rows.length){ loginError.textContent='Contraseña incorrecta.'; loginError.classList.add('show'); return; }
+        var user = { id:rows[0].id, nombre:rows[0].nombre, admin:rows[0].admin, modulos:rows[0].modulos||'', token:rows[0].token, expira_en:rows[0].expira_en };
+        if (!tienePermiso(user)){ loginError.textContent='No tenés acceso a este módulo.'; loginError.classList.add('show'); return; }
+        localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+        boot(user);
+      }).catch(function(){ loginError.textContent='No se pudo conectar. Revisa tu conexión e intenta de nuevo.'; loginError.classList.add('show'); });
+    });
+
+    document.addEventListener('click', function(e){
+      var btn = e.target.closest('.pw-toggle'); if (!btn) return;
+      var input = btn.getAttribute('data-target') ? document.getElementById(btn.getAttribute('data-target')) : btn.previousElementSibling;
+      if (!input) return;
+      var showing = input.type==='text'; input.type = showing?'password':'text'; btn.textContent = showing?'👁':'🙈';
+    });
+    logoutBtn.addEventListener('click', function(){ localStorage.removeItem(SESSION_KEY); location.reload(); });
+
+  })();
+  </script>
+</body>
+</html>
